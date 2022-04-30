@@ -29,7 +29,7 @@ pip install -r requirements.txt
 
 ### Для скачивания новостей
 ```sh
-ploomber build -e pipeline_scrape_json
+ploomber build -e pipeline_scrape_json.make
 ```
 
 ### Для скачивания комментариев
