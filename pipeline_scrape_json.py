@@ -23,7 +23,7 @@ def make():
     # NOTE: this is only required for testing purpose
     dag.executor = Serial(build_in_subprocess=False)
 
-    def func(product, upstream):
+    def combine_csv(product, upstream):
         dfs = []
         for _, file in upstream.items():
             dfs.append(pd.read_csv(file))
@@ -31,10 +31,13 @@ def make():
 
         pd.DataFrame(df).to_csv(product, index=False)
 
-    combine_task = PythonCallable(func, File('products/all_days.csv'), dag, name='combine_days')
+    product_path = 'products/all_days.csv'
+    name = 'combine_day_news'
+    combine_task = PythonCallable(combine_csv, File(product_path), dag, name)
 
     product_path = './products/reports/eda_news.html'
-    eda_task = NotebookRunner(Path('./exploratory/eda_news.py'), File(product_path), dag, name='eda_news1')
+    name = 'eda_news'
+    eda_task = NotebookRunner(Path('./exploratory/eda_news.py'), File(product_path), dag, name)
 
     combine_task >> eda_task
 
@@ -43,14 +46,11 @@ def make():
         url = f'https://newsapi.fontanka.ru/v1/public/fontanka/services/archive/?regionId=478&page=1&pagesize=500&date={date}&rubricId=all'
         name = f'download_day_{date}'
         product_path = f'products/raw/days/{date}.json' 
-
         day_task = DownloadFromURL(url, File(product_path), dag, name)
 
         name = f'parse_day_{date}'
         product_path = f'products/interim/days/{date}.csv'
         day_news_task = PythonCallable(get_day_news_json, File(product_path), dag, name)
-
-        name = f'parse_comments_{date}'
 
         day_task >> day_news_task >> combine_task
 
