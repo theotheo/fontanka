@@ -28,6 +28,8 @@ pip install -r requirements.txt
 ## Запуск конвееров
 
 ### Для скачивания новостей
+![](pipeline_scrape_json.png)
+
 ```sh
 ploomber build -e pipeline_scrape_json.make
 ```
