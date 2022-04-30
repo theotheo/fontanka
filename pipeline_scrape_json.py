@@ -32,7 +32,7 @@ def make():
         pd.DataFrame(df).to_csv(product, index=False)
 
     product_path = 'products/all_days.csv'
-    name = 'combine_day_news'
+    name = 'combine_days_news'
     combine_task = PythonCallable(combine_csv, File(product_path), dag, name)
 
     product_path = './products/reports/eda_news.html'

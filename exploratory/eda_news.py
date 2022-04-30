@@ -13,7 +13,6 @@ product = None
 upstream = {"combine_days": "products/all_days.csv"}
 product = "./products/reports/eda_news.ipynb"
 
-
 # %%
 import pandas as pd
 import numpy as np
@@ -23,9 +22,12 @@ pd.set_option("plotting.backend", "pandas_bokeh")
 pd.plotting.output_notebook()
 
 # %%
-df = pd.read_csv(upstream['combine_days'])
+df = pd.read_csv(upstream['combine_days_news'])
 df['publishAt'] = pd.to_datetime(df['publishAt'])
 df.set_index('publishAt', inplace=True)
+
+USEFUL_COLUMNS = ['commentsCount', 'header', 'category']
+
 
 # %%
 df.sample(10)
@@ -41,6 +43,9 @@ df.resample('1M').count()['id'].plot(title="распределение ново�
 # df.plot_bokeh(kind="hist", y=['commentsCount'], bins=np.arange(0, 1000, 20), vertical_xlabel=True)
 df['commentsCount'].plot(kind='hist', bins=20, title="распределение комментариев", log=True, backend="matplotlib")
 
+
+# %%
+df.sort_values('commentsCount', ascending=False).head(20)[USEFUL_COLUMNS]
 # %%
 df.resample('1d').sum()['commentsCount'].plot(title="общее число комментариев по дням")
 
@@ -48,7 +53,10 @@ df.resample('1d').sum()['commentsCount'].plot(title="общее число ко�
 df['category'].value_counts()
 
 # %%
-df.groupby(['category']).mean()['commentsCount']
+df.groupby(['category']).mean()['commentsCount'].sort_values(ascending=False)
+
+# %%
+df.query('category == "Особое мнение"').sample(5)
 
 # %%
 category_by_weeks = df.groupby('category').resample('1w').agg('size').reset_index().set_index('publishAt')
