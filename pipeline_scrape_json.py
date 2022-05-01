@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+from pandas_profiling import ProfileReport
 from ploomber import DAG
 from ploomber.executors import Serial
 from ploomber.products import File
@@ -23,6 +24,15 @@ def make():
     # NOTE: this is only required for testing purpose
     dag.executor = Serial(build_in_subprocess=False)
 
+    def make_profile(product, upstream):
+        df = pd.read_csv(upstream.first)
+        profile = ProfileReport(df, title="Pandas Profiling Report")
+        profile.to_file(product)
+
+    product_path = 'products/reports/news_profile.html'
+    name = 'news_profile'
+    profile_task = PythonCallable(make_profile, File(product_path), dag, name)
+
     def combine_csv(product, upstream):
         dfs = []
         for _, file in upstream.items():
@@ -40,6 +50,7 @@ def make():
     eda_task = NotebookRunner(Path('./exploratory/eda_news.py'), File(product_path), dag, name)
 
     combine_task >> eda_task
+    combine_task >> profile_task
 
     for date in dates:
         
