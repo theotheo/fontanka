@@ -1,5 +1,16 @@
 # ---
 # jupyter:
+#   jupytext:
+#     notebook_metadata_filter: ploomber
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.13.8
+#   kernelspec:
+#     display_name: Python 3 (ipykernel)
+#     language: python
+#     name: python3
 #   ploomber:
 #     injected_manually: true
 # ---
@@ -10,8 +21,9 @@ product = None
 
 # %% tags=["injected-parameters"]
 # Parameters
-upstream = {"combine_days": "products/all_days.csv"}
-product = "./products/reports/eda_news.ipynb"
+upstream = {"combine_days_news": "products/processed/all_days.csv"}
+product = "./products/reports/eda_news.html"
+
 
 # %%
 import pandas as pd

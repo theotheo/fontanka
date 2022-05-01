@@ -71,6 +71,7 @@ def parse_day_news_json(text):
     data = payload['data']
 
     news_list = []
+    authors_list = []
     for item in data:
         news = {}
 
@@ -82,15 +83,28 @@ def parse_day_news_json(text):
         del item['lead']
         del item['urls']
         del item['rubrics']
+
         news = item.copy()
         news['publishAt'] = dt.datetime.strptime(news['publishAt'],  "%d.%m.%Y %H:%M")
         try:
-            news['category'] = rubrics['name']
+            news['category'] = rubrics[0]['name']
         except:
             news['category'] = None
-        news_list.append(news)
 
-    return news_list
+        news['authorsCount'] = len(authors)
+        if authors:
+            news['authorId'] = authors[0]['id']
+
+        news['url'] = urls['url']
+        news['urlComments'] = urls['urlComments']
+
+        if lead:
+            news['leadText'] = lead[0]['value']['text']
+    
+        news_list.append(news)
+        authors_list.extend(authors)
+
+    return news_list, authors_list
 
 
 def get_children_comments(comment_id):

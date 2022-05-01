@@ -30,8 +30,9 @@ def parse_day_html(product, upstream):
 def get_day_news_json(product, upstream):
     p = Path(upstream.first)
     json = p.read_text()
-    day_news = parse_day_news_json(json)
-    pd.DataFrame(day_news).to_csv(product, index=False)
+    day_news, authors = parse_day_news_json(json)
+    pd.DataFrame(day_news).to_csv(product['news'], index=False)
+    pd.DataFrame(authors).to_csv(product['authors'], index=False)
 
 
 def get_day_news(product, upstream):

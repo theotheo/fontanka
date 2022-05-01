@@ -35,13 +35,13 @@ def make():
 
     def combine_csv(product, upstream):
         dfs = []
-        for _, file in upstream.items():
-            dfs.append(pd.read_csv(file))
+        for _, products in upstream.items():
+            dfs.append(pd.read_csv(products['news']))
         df = pd.concat(dfs)
 
         pd.DataFrame(df).to_csv(product, index=False)
 
-    product_path = 'products/all_days.csv'
+    product_path = 'products/processed/all_days.csv'
     name = 'combine_days_news'
     combine_task = PythonCallable(combine_csv, File(product_path), dag, name)
 
@@ -60,8 +60,10 @@ def make():
         day_task = DownloadFromURL(url, File(product_path), dag, name)
 
         name = f'parse_day_{date}'
-        product_path = f'products/interim/days/{date}.csv'
-        day_news_task = PythonCallable(get_day_news_json, File(product_path), dag, name)
+        product_news_path = f'products/interim/news/{date}.csv'
+        product_author_path = f'products/interim/authors/{date}.csv'
+        product = {'news': File(product_news_path), 'authors': File(product_author_path)}
+        day_news_task = PythonCallable(get_day_news_json, product, dag, name)
 
         day_task >> day_news_task >> combine_task
 
