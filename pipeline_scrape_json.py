@@ -7,12 +7,12 @@ from dateutil.relativedelta import relativedelta
 from pandas_profiling import ProfileReport
 from ploomber import DAG
 from ploomber.executors import Serial
-from ploomber.products import File
+from ploomber.products import File, GenericSQLRelation, SQLiteRelation
 from ploomber.tasks import (DownloadFromURL, NotebookRunner, PythonCallable,
-                            TaskGroup)
+                            TaskGroup, SQLUpload)
 
 from tasks.scrape import get_day_news_json
-
+from tasks.clients import get_client
 
 start_date = date(year=2022, month=1, day=1)
 end_date = date(year=2022, month=5, day=1)
@@ -20,9 +20,11 @@ dates = [start_date + timedelta(days=x) for x in range((end_date - start_date).d
 
 
 def make(data_dir: str = 'data', artifact_dir: str = 'reports'):
-    dag = DAG()
+    dag = DAG(clients={SQLUpload: get_client})
     # NOTE: this is only required for testing purpose
     dag.executor = Serial(build_in_subprocess=False)
+    dag.clients[SQLUpload] = get_client()
+    dag.clients[SQLiteRelation] = get_client()
 
     def make_profile(product, upstream):
         df = pd.read_csv(upstream.first)
@@ -49,9 +51,17 @@ def make(data_dir: str = 'data', artifact_dir: str = 'reports'):
     name = 'eda_news'
     eda_task = NotebookRunner(Path('./exploratory/eda_news.py'), File(product_path), dag, name)
 
+    client = get_client()
+    product_path = SQLiteRelation(('news', 'table'))
+    name = 'upload_news.csv'
+    upload_news_task = SQLUpload(str(combine_task.upstream), product_path, dag, name, client)
+    
+
     combine_task >> eda_task
     combine_task >> profile_task
+    combine_task >> upload_news_task
 
+    
     for date in dates:
         
         url = f'https://newsapi.fontanka.ru/v1/public/fontanka/services/archive/?regionId=478&page=1&pagesize=500&date={date}&rubricId=all'
