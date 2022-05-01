@@ -71,6 +71,18 @@ df.groupby(['category']).mean()['commentsCount'].sort_values(ascending=False)
 df.query('category == "Особое мнение"').sample(5)
 
 # %%
+
+df['commentsCount'].describe()
+# df.boxplot(['commentsCount']).
+
+# %%
+q3 = df['commentsCount'].quantile(0.75)
+
+# топ 25% новостей по числу комментариев
+top_comments_df = df.query(f'commentsCount >= {q3}')
+top_comments_df.sample(5)
+
+# %%
 category_by_weeks = df.groupby('category').resample('1w').agg('size').reset_index().set_index('publishAt')
 category_by_weeks.rename(columns={0: 'count'}, inplace=True)
 
@@ -80,3 +92,8 @@ category_by_weeks_wide = category_by_weeks.pivot(columns='category',
 category_by_weeks.sample(5)
 # %%
 category_by_weeks_wide.plot(kind='bar', figsize=(1200,800), stacked=True, vertical_xlabel=True, fontsize_legend=8)
+
+# %%
+df['mention_Ukraine'] = df['header'].str.contains('Украин')
+
+df.resample('1d').sum()[['mention_Ukraine']].plot(title='Распределение заголовков, в которых встречается Украина')
