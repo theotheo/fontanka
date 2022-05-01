@@ -19,17 +19,17 @@ end_date = date(year=2022, month=5, day=1)
 dates = [start_date + timedelta(days=x) for x in range((end_date - start_date).days)]
 
 
-def make():
+def make(data_dir: str = 'data', artifact_dir: str = 'reports'):
     dag = DAG()
     # NOTE: this is only required for testing purpose
     dag.executor = Serial(build_in_subprocess=False)
 
     def make_profile(product, upstream):
         df = pd.read_csv(upstream.first)
-        profile = ProfileReport(df, title="Pandas Profiling Report")
+        profile = ProfileReport(df, title="News Report")
         profile.to_file(product)
 
-    product_path = 'products/reports/news_profile.html'
+    product_path = f'{artifact_dir}/news_profile.html'
     name = 'news_profile'
     profile_task = PythonCallable(make_profile, File(product_path), dag, name)
 
@@ -41,11 +41,11 @@ def make():
 
         pd.DataFrame(df).to_csv(product, index=False)
 
-    product_path = 'products/processed/all_days.csv'
+    product_path = f'{data_dir}/processed/all_days.csv'
     name = 'combine_days_news'
     combine_task = PythonCallable(combine_csv, File(product_path), dag, name)
 
-    product_path = './products/reports/eda_news.html'
+    product_path = f'{artifact_dir}/eda_news.html'
     name = 'eda_news'
     eda_task = NotebookRunner(Path('./exploratory/eda_news.py'), File(product_path), dag, name)
 
@@ -56,12 +56,12 @@ def make():
         
         url = f'https://newsapi.fontanka.ru/v1/public/fontanka/services/archive/?regionId=478&page=1&pagesize=500&date={date}&rubricId=all'
         name = f'download_day_{date}'
-        product_path = f'products/raw/days/{date}.json' 
+        product_path = f'{data_dir}/raw/days/{date}.json' 
         day_task = DownloadFromURL(url, File(product_path), dag, name)
 
         name = f'parse_day_{date}'
-        product_news_path = f'products/interim/news/{date}.csv'
-        product_author_path = f'products/interim/authors/{date}.csv'
+        product_news_path = f'{data_dir}/interim/news/{date}.csv'
+        product_author_path = f'{data_dir}/interim/authors/{date}.csv'
         product = {'news': File(product_news_path), 'authors': File(product_author_path)}
         day_news_task = PythonCallable(get_day_news_json, product, dag, name)
 
