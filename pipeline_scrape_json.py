@@ -41,7 +41,7 @@ def make(data_dir: str = 'data', artifact_dir: str = 'reports'):
 
         pd.DataFrame(df).to_csv(product, index=False)
 
-    product_path = f'{data_dir}/processed/all_days.csv'
+    product_path = f'{data_dir}/processed/news.csv'
     name = 'combine_days_news'
     combine_task = PythonCallable(combine_csv, File(product_path), dag, name)
 

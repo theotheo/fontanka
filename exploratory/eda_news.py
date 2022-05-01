@@ -21,8 +21,8 @@ product = None
 
 # %% tags=["injected-parameters"]
 # Parameters
-upstream = {"combine_days_news": "products/processed/all_days.csv"}
-product = "./products/reports/eda_news.html"
+upstream = {"combine_days_news": "data/processed/news.csv"}
+product = "./reports/eda_news.html"
 
 
 # %%
